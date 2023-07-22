@@ -22,8 +22,7 @@ include_once "./Common/Functions.php";
         $restNames = json_decode($response);                               // decode the json into names array
     }
 
-    if (isset($btnRestSelected) && $drpRestaurant !== '-1' && $drpRestaurant !== '-2')
-    { 
+    if (isset($btnRestSelected) && $drpRestaurant !== '-1' && $drpRestaurant !== '-2') {
         //Add your code here to get the user selected restaurant review from the restaurant review Web API
         //and display the result on the page.
 
@@ -42,37 +41,88 @@ include_once "./Common/Functions.php";
         displayRestaurantDataOnPage($rest);
 
     }  
-    else if (isset($btnRestSelected) && $drpRestaurant === '-2')
-    {
+    else if (isset($btnRestSelected) && $drpRestaurant === '-2') {
         $rest = new Restaurant();
         displayRestaurantDataOnPage($rest);
     }
-    else if (isset($btnSaveChange))
-    {
-            $rest = getRestaurantDataFromPage();
+    else if (isset($btnSaveChange)) {
+        $rest = getRestaurantDataFromPage();
 
-            //restore data on the page lost during post.
-            $drpRatingMax = $rest->rating->maxRating;
-            $drpRatingMin = $rest->rating->minRating;
-            $drpCostMax = $rest->cost->maxCost;
-            $drpCostMin = $rest->cost->minCost;
-
-            //Add your code here to have save the changed restaurant review to the restaurant review Web API
+        //restore data on the page lost during post.
+        $drpRatingMax = $rest->rating->maxRating;
+        $drpRatingMin = $rest->rating->minRating;
+        $drpCostMax = $rest->cost->maxCost;
+        $drpCostMin = $rest->cost->minCost;
 
 
+        // Save the changed restaurant review to the restaurant review Web API
+        //http method PUT
+        $curlHandler = curl_init($restaurantReviewAPIURL);      // initialize curl handler with url from ini file
+
+        curl_setopt_array($curlHandler, array(                  // set curl options
+                CURLOPT_RETURNTRANSFER => true,                     //return data as a string
+                CURLOPT_CUSTOMREQUEST => "PUT",                     //http method PUT
+                CURLOPT_POSTFIELDS => json_encode($rest),           //data to be sent as json
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/json',               //set the content type to json
+                    'Accept: json'
+                ),
+            ));
+
+        $response = curl_exec($curlHandler);                    // execute curl and store response in a string
+        $responseCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);
+        curl_close($curlHandler);
+        if (strpos($responseCode, "2") === 0) {                 // check if response code starts with 2
+            $confirmation = "Revised Restaurant review has been saved";
+        } else {
+            $confirmation = "Something went wrong, changes could not be saved";
+        }
     }
     else if (isset($btnDelete)) {
-        
-            //Add your code here to delete the user selected restaurant review from the restaurant review Web API
+
+        //Add your code here to delete the user selected restaurant review from the restaurant review Web API
+        $curlHandler = curl_init($restaurantReviewAPIURL . "/$drpRestaurant"); // initialize curl handler with url from ini file
+        curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);      // set curl option to return data as a string
+        curl_setopt($curlHandler, CURLOPT_CUSTOMREQUEST, "DELETE");   // set curl option to use http method DELETE
+
+        $response = curl_exec($curlHandler);                                       // execute curl and store response in a string
+        $responseCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);     // get the response code
+        curl_close($curlHandler);                                                 // close curl handler
+
+        if(strpos($responseCode, "2") === 0) {                              // check if response code starts with 2
+            header("Location: RestaurantReviews.php");
+        } else {
+            $confirmation = "Something went wrong, restaurant review could not be deleted";
+        }
 
 
     }
     else if (isset($btnSaveNew)) {
 
-            $rest = getRestaurantDataFromPage();
+        $rest = getRestaurantDataFromPage();
 
-            //Add your code here to save the new restaurant review to the restaurant review Web API
+        //Add your code here to save the new restaurant review to the restaurant review Web API
+        //http method POST
+        $curlHandler = curl_init($restaurantReviewAPIURL);      // initialize curl handler with url from ini file
 
+        curl_setopt_array($curlHandler, array(                  // set curl options
+            CURLOPT_RETURNTRANSFER => true,                     //return data as a string
+            CURLOPT_CUSTOMREQUEST => "POST",                     //http method POST
+            CURLOPT_POSTFIELDS => json_encode($rest),           //data to be sent as json
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',               //set the content type to json
+                'Accept: json'
+            ),
+        ));
+
+        $response = curl_exec($curlHandler);                    // execute curl and store response in a string
+        $responseCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);
+        curl_close($curlHandler);
+        if (strpos($responseCode, "2") === 0) {                 // check if response code starts with 2
+            header("Location: RestaurantReviews.php");
+        } else {
+            $confirmation = "Something went wrong, changes could not be saved";
+        }
 
 
     }
