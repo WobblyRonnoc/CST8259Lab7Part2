@@ -6,26 +6,40 @@ include_once "./Common/Functions.php";
    
     $appConfigs = parse_ini_file("Lab7Part2.ini");
     extract($appConfigs);
-    
+
     extract($_POST);
     $confirmation = false;
     
     $restNames = Array();
 
-    //Add your code here to get all restaurant names from the restaurant review Web API
+    $curlHandler = curl_init($restaurantNamesAPIURL);                        // initialize curl handler with url from ini file
+    curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);    // set curl option to return data as a string
+    $response = curl_exec($curlHandler);                                    // execute curl and store response in a string
+    $responseCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);  // get the response code
+    curl_close($curlHandler);                                              // close curl handler
 
+    if (strpos($responseCode, "2") === 0) {                         // check if response code starts with 2
+        $restNames = json_decode($response);                               // decode the json into names array
+    }
 
-
-    
     if (isset($btnRestSelected) && $drpRestaurant !== '-1' && $drpRestaurant !== '-2')
     { 
-         //Add your code here to get the user selected restaurant review from the restaurant review Web API
-         //and display the result on the page. 
+        //Add your code here to get the user selected restaurant review from the restaurant review Web API
+        //and display the result on the page.
 
-     
+        //get the restaurant by id using curl
+        $curlHandler = curl_init($restaurantReviewAPIURL . "/$drpRestaurant"); // initialize curl handler with url from ini file
+        curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);      // set curl option to return data as a string
+        $response = curl_exec($curlHandler);                                      // execute curl and store response in a string
+        $responseCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);    // get the response code
+        curl_close($curlHandler);                                                  // close curl handler
 
-         //Uncomment the following line to display the restaurant review.
-         //displayRestaurantDataOnPage($rest);
+        if (strpos($responseCode, "2") === 0) {                           // check if response code starts with 2
+            $rest = json_decode($response);                                         // decode the json into names array
+        }
+
+        //Uncomment the following line to display the restaurant review.
+        displayRestaurantDataOnPage($rest);
 
     }  
     else if (isset($btnRestSelected) && $drpRestaurant === '-2')
@@ -198,8 +212,8 @@ function onRestaurantChanged( )
     } 
     else
     {
-         document.getElementById('restaurant-info').style.display = 'none';
+        document.getElementById('restaurant-info').style.display = 'none';
     }
 } 
- </script>
+</script>
 <?php include "./Common/Footer.php"; ?>

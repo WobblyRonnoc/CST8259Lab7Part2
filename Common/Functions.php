@@ -51,4 +51,3 @@ function getRestaurantDatafromPage( )
 
     return $rest;
 }
-
